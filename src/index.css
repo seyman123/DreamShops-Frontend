@@ -1,13 +1,489 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Base Styles */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    line-height: 1.6;
+    color: #1f2937;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Dark mode body */
+  .dark body {
+    color: #e5e7eb;
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+  }
+
+  /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  /* Light mode'da daha belirgin başlıklar */
+  .light h1, .light h2, .light h3, .light h4, .light h5, .light h6 {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  h1 { font-size: 3rem; }
+  h2 { font-size: 2.25rem; }
+  h3 { font-size: 1.875rem; }
+  h4 { font-size: 1.5rem; }
+  h5 { font-size: 1.25rem; }
+  h6 { font-size: 1.125rem; }
+
+  p {
+    margin-bottom: 1rem;
+    color: #374151;
+  }
+
+  .dark p {
+    color: #d1d5db;
+  }
+
+  .light p {
+    color: #1f2937;
+  }
+
+  /* Links */
+  a {
+    color: #3b82f6;
+    text-decoration: none;
+    transition: color 0.15s ease-in-out;
+  }
+
+  a:hover {
+    color: #d946ef;
+  }
+
+  /* Scrollbar Styling */
+  ::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+
+  .dark ::-webkit-scrollbar-track {
+    background: #1f2937;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+    border-radius: 6px;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Custom Component Classes */
+@layer components {
+  /* Glass Morphism */
+  .glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  }
+
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  }
+
+  .glass-light {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(229, 231, 235, 0.8);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Light mode'da glass effect'i daha belirgin yap */
+  .light .glass {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(229, 231, 235, 0.8);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Modern Buttons */
+  .btn-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 0.5rem;
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Modern Cards */
+  .modern-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  .modern-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border-color: #3b82f6;
+  }
+
+  .dark .modern-card {
+    background: rgba(17, 24, 39, 0.8);
+    border-color: rgba(55, 65, 81, 0.5);
+  }
+
+  .dark .modern-card:hover {
+    border-color: #60a5fa;
+    box-shadow: 0 25px 50px -12px rgba(255, 255, 255, 0.15);
+  }
+
+  /* Form Controls */
+  .form-control {
+    border-radius: 0.5rem;
+    border: 2px solid #e5e7eb;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    color: #1f2937;
+  }
+
+  .dark .form-control {
+    border-color: #4b5563;
+    background: #374151;
+    color: #e5e7eb;
+  }
+
+  .light .form-control {
+    border-color: #d1d5db;
+    background: #ffffff;
+    color: #1f2937;
+  }
+
+  .form-control:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .dark .form-control:focus {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(147, 197, 253, 0.1);
+  }
+
+
+}
+
+/* Utility Classes */
+@layer utilities {
+  /* Gradient Text */
+  .gradient-text {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    font-weight: 700;
+  }
+
+  .gradient-text-secondary {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    font-weight: 700;
+  }
+
+  .gradient-text-accent {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    font-weight: 700;
+  }
+
+  /* Animation Utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  /* Animation Keyframes */
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideUp {
+    0% { opacity: 0; transform: translateY(30px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+
+  /* Loading States */
+  .loading-shimmer {
+    background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
+    background-size: 200px 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  .dark .loading-shimmer {
+    background: linear-gradient(90deg, #374151 0%, #4b5563 50%, #374151 100%);
+    background-size: 200px 100%;
+  }
+
+  /* Badge Styles */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  /* Text Colors for Light Mode */
+  .light .text-white {
+    color: #1f2937 !important;
+  }
+
+  .light .text-gray-300 {
+    color: #374151 !important;
+  }
+
+  .light .text-gray-400 {
+    color: #4b5563 !important;
+  }
+
+  .light .text-gray-500 {
+    color: #6b7280 !important;
+  }
+
+  /* Modal ve Dropdown'lar için Light Mode */
+  .light select {
+    background: #ffffff !important;
+    color: #1f2937 !important;
+    border-color: #d1d5db !important;
+  }
+
+  .light select option {
+    background: #ffffff !important;
+    color: #1f2937 !important;
+  }
+
+  .light input[type="text"],
+  .light input[type="email"],
+  .light input[type="password"],
+  .light input[type="number"],
+  .light input[type="tel"],
+  .light input[type="date"],
+  .light input[type="file"],
+  .light textarea {
+    background: #ffffff !important;
+    color: #1f2937 !important;
+    border-color: #d1d5db !important;
+  }
+
+  .light input::placeholder,
+  .light textarea::placeholder {
+    color: #6b7280 !important;
+  }
+
+  /* Label'lar için */
+  .light label {
+    color: #374151 !important;
+  }
+
+  /* Modal içindeki text'ler */
+  .light .modal h1,
+  .light .modal h2,
+  .light .modal h3,
+  .light .modal h4,
+  .light .modal h5,
+  .light .modal h6,
+  .light .modal p,
+  .light .modal span,
+  .light .modal div {
+    color: #1f2937 !important;
+  }
+
+  /* Admin panel'deki tüm text'ler */
+  .light .admin-panel .text-white,
+  .light .admin-panel .text-gray-300,
+  .light .admin-panel .text-gray-400 {
+    color: #1f2937 !important;
+  }
+
+  /* Genel modal ve dropdown background'ları */
+  .light .glass-dark,
+  .light .bg-gray-800,
+  .light .bg-gray-900 {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #1f2937 !important;
+  }
+
+  /* Fixed positioned modals için */
+  .light .fixed {
+    color: #1f2937 !important;
+  }
+
+  /* Modal içindeki tüm içerik */
+  .light .fixed * {
+    color: inherit !important;
+  }
+
+  /* Dropdown ve select optionlar için */
+  .light option {
+    background: #ffffff !important;
+    color: #1f2937 !important;
+  }
+
+  /* File input özel styling */
+  .light input[type="file"]::-webkit-file-upload-button {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 0.5rem !important;
+    padding: 0.5rem 1rem !important;
+    margin-right: 1rem !important;
+    cursor: pointer !important;
+  }
+
+  /* Buton hover efektleri için */
+  .light button:not(.btn-gradient):not([class*="bg-"]) {
+    color: #1f2937 !important;
+  }
+
+  /* Modal başlıkları ve içerik */
+  .light .modern-card h3,
+  .light .modern-card h4,
+  .light .modern-card p,
+  .light .modern-card span,
+  .light .modern-card div:not([class*="bg-"]) {
+    color: #1f2937 !important;
+  }
+
+  /* Background Utilities */
+  .bg-gradient-dark {
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+  }
+
+  .bg-gradient-light {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+  }
+
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .bg-gradient-secondary {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+
+  .bg-gradient-accent {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  }
+
+  /* Shadow Utilities */
+  .shadow-glass {
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  }
+
+  .shadow-custom {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .shadow-custom-lg {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  .shadow-dark {
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+  }
+
+  .shadow-dark-lg {
+    box-shadow: 0 20px 40px rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  h1 { font-size: 1.875rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+  
+  .modern-card {
+    border-radius: 0.75rem;
+  }
+}
+
+/* Bootstrap Integration - Keep necessary Bootstrap classes */
+.container, .container-fluid, .row, .col, 
+.col-1, .col-2, .col-3, .col-4, .col-5, .col-6,
+.col-7, .col-8, .col-9, .col-10, .col-11, .col-12,
+.col-sm, .col-md, .col-lg, .col-xl, .col-xxl,
+.col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6,
+.col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12,
+.col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6,
+.col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12,
+.col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6,
+.col-lg-7, .col-lg-8, .col-lg-9, .col-lg-10, .col-lg-11, .col-lg-12 {
+  /* Bootstrap grid classes are kept for compatibility */
 }
