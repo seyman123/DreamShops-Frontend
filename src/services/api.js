@@ -1,16 +1,15 @@
 ﻿import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import logger from '../utils/logger';
-
-const API_BASE_URL = 'http://localhost:9193/api/v1';
+import { config } from '../utils/config';
 
 // Create axios instance
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: config.API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: config.API_TIMEOUT,
 });
 
 // Request interceptor
@@ -39,8 +38,8 @@ api.interceptors.response.use(
     logger.error('API Error:', error.response?.data || error.message);
     
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      localStorage.removeItem(config.TOKEN_STORAGE_KEY);
+      localStorage.removeItem(config.USER_STORAGE_KEY);
       window.location.href = '/login';
     }
     
@@ -116,19 +115,19 @@ export const imagesAPI = {
   deleteImage: (imageId) => api.delete(`/images/image/${imageId}/delete`),
   
   // Utility method for frontend image URL generation
-  getImageUrl: (imageId) => `${API_BASE_URL}/images/image/${imageId}`,
+  getImageUrl: (imageId) => `${config.API_BASE_URL}/images/image/${imageId}`,
 };
 
 // Auth API - COMPLETE
 export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
-  register: (userData) => api.post('/auth/register', userData),
+  register: (userData) => api.post('/users/add/user', userData),
   logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem(config.TOKEN_STORAGE_KEY);
+    localStorage.removeItem(config.USER_STORAGE_KEY);
   },
   getCurrentUser: () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem(config.TOKEN_STORAGE_KEY);
     if (token) {
       try {
         const decoded = jwtDecode(token);
@@ -191,7 +190,7 @@ export const favoritesAPI = {
   
   // Convenience method for current user
   getCurrentUserFavorites: () => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = JSON.parse(localStorage.getItem(config.USER_STORAGE_KEY) || '{}');
     if (user.id) {
       return api.get(`/favorites/user/${user.id}`);
     }

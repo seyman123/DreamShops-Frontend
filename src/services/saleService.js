@@ -1,12 +1,10 @@
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:9193/api/v1';
+import api from './api';
 
 export const saleService = {
   // Get all products on sale
   getProductsOnSale: async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/sales/products`);
+      const response = await api.get('/sales/products');
       return response.data;
     } catch (error) {
       console.error('Error fetching products on sale:', error);
@@ -17,7 +15,7 @@ export const saleService = {
   // Get flash sale products
   getFlashSaleProducts: async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/sales/flash-sale`);
+      const response = await api.get('/sales/flash-sale');
       return response.data;
     } catch (error) {
       console.error('Error fetching flash sale products:', error);
@@ -28,7 +26,7 @@ export const saleService = {
   // Get products on sale by category
   getProductsOnSaleByCategory: async (category) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/sales/category/${category}`);
+      const response = await api.get(`/sales/category/${category}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching products on sale by category:', error);
@@ -39,21 +37,11 @@ export const saleService = {
   // Admin: Put product on sale
   putProductOnSale: async (productId, saleData) => {
     try {
-      const token = localStorage.getItem('token');
-      const url = `${API_BASE_URL}/sales/product/${productId}/sale`;
-      
       console.log('PUT request details:');
-      console.log('URL:', url);
       console.log('Product ID:', productId);
       console.log('Sale Data:', saleData);
-      console.log('Token:', token ? 'Present' : 'Missing');
       
-      const response = await axios.put(url, saleData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await api.put(`/sales/product/${productId}/sale`, saleData);
       
       console.log('PUT response:', response.data);
       return response.data;
@@ -70,12 +58,7 @@ export const saleService = {
   // Admin: Remove product from sale
   removeProductFromSale: async (productId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.delete(`${API_BASE_URL}/sales/product/${productId}/sale`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await api.delete(`/sales/product/${productId}/sale`);
       return response.data;
     } catch (error) {
       console.error('Error removing product from sale:', error);
@@ -88,7 +71,7 @@ export const couponService = {
   // Get all active coupons
   getActiveCoupons: async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/coupons/active`);
+      const response = await api.get('/coupons/active');
       return response.data;
     } catch (error) {
       console.error('Error fetching active coupons:', error);
@@ -99,7 +82,7 @@ export const couponService = {
   // Validate coupon
   validateCoupon: async (code, orderAmount) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/coupons/validate`, null, {
+      const response = await api.post('/coupons/validate', null, {
         params: { code, orderAmount }
       });
       return response.data;
@@ -112,7 +95,7 @@ export const couponService = {
   // Apply coupon
   applyCoupon: async (code, orderAmount) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/coupons/apply`, null, {
+      const response = await api.post('/coupons/apply', null, {
         params: { code, orderAmount }
       });
       return response.data;
@@ -125,7 +108,7 @@ export const couponService = {
   // Get coupon by code
   getCouponByCode: async (code) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/coupons/${code}`);
+      const response = await api.get(`/coupons/${code}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching coupon by code:', error);

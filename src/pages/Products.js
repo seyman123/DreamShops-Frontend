@@ -29,6 +29,9 @@ const Products = () => {
     totalPages,
     totalElements,
     pageSize,
+    setCurrentPage,
+    setTotalPages,
+    setTotalElements,
     handlePageChange,
     updatePaginationData,
     resetPagination
@@ -61,30 +64,49 @@ const Products = () => {
     }
   };
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (pageNum = 0) => {
     try {
       setLoading(true);
       setError(null);
 
-      let endpoint = '/products/all';
+      // Server-side pagination parametreleri
+      const params = {
+        page: pageNum,
+        size: 12,
+        sort: getSortParam(sortBy)
+      };
+
+      let endpoint = '/products/paginated';
       
       if (searchTerm && selectedCategory) {
-        endpoint = `/products/search/by-category-and-name?category=${encodeURIComponent(selectedCategory)}&productName=${encodeURIComponent(searchTerm)}`;
+        endpoint = '/products/search/paginated';
+        params.search = searchTerm;
+        params.category = selectedCategory;
       } else if (searchTerm) {
-        endpoint = `/products/search/${encodeURIComponent(searchTerm)}`;
+        endpoint = '/products/search/paginated';
+        params.search = searchTerm;
       } else if (selectedCategory) {
-        endpoint = `/products/category/${encodeURIComponent(selectedCategory)}/products`;
+        endpoint = '/products/category/paginated';
+        params.category = selectedCategory;
       }
 
-      const response = await api.get(endpoint);
-      let allProducts = response.data.data || [];
+      const response = await api.get(endpoint, { params });
+      const responseData = response.data.data;
 
-      // Apply sorting
-      allProducts = sortProducts(allProducts, sortBy);
-
-      // Update pagination and get current page products
-      const currentPageProducts = updatePaginationData(allProducts, true);
-      setProducts(currentPageProducts);
+      // Server-side pagination response yapısını kontrol et
+      if (responseData && typeof responseData === 'object' && responseData.products) {
+        // Paginated response
+        setProducts(responseData.products || []);
+        setCurrentPage(responseData.currentPage || 0);
+        setTotalPages(responseData.totalPages || 0);
+        setTotalElements(responseData.totalElements || 0);
+      } else {
+        // Fallback: Non-paginated response - client-side pagination uygula
+        const allProducts = responseData || [];
+        const sortedProducts = sortProducts(allProducts, sortBy);
+        const currentPageProducts = updatePaginationData(sortedProducts, true);
+        setProducts(currentPageProducts);
+      }
 
     } catch (error) {
       logger.error('Error fetching products', error);
@@ -158,24 +180,43 @@ const Products = () => {
     }
   };
 
-  // Handle page change with current products
+  // Handle page change with server-side pagination
   const onPageChange = (newPage) => {
-    const newProducts = handlePageChange(newPage);
-    setProducts(newProducts);
+    fetchProducts(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Handle sort change
+  // Handle sort change with server-side pagination
   const onSortChange = (newSortBy) => {
     console.log('Sort changed to:', newSortBy);
     handleSortChange(newSortBy);
     
-    // Sıralama değiştiğinde products'ı yeniden fetch et
+    // Sıralama değiştiğinde ilk sayfadan başla
     const timer = setTimeout(() => {
-      fetchProducts();
+      fetchProducts(0);
     }, 100);
     
     if (searchTimeout) clearTimeout(searchTimeout);
     setSearchTimeout(timer);
+  };
+
+  // Sort parametresi helper function
+  const getSortParam = (sortOption) => {
+    switch (sortOption) {
+      case 'price-asc':
+        return 'price,asc';
+      case 'price-desc':
+        return 'price,desc';
+      case 'brand':
+        return 'brand,asc';
+      case 'brand-desc':
+        return 'brand,desc';
+      case 'name-desc':
+        return 'name,desc';
+      case 'name':
+      default:
+        return 'name,asc';
+    }
   };
 
   // Effects
@@ -186,7 +227,7 @@ const Products = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchProducts();
+      fetchProducts(0); // Her arama/filtre değişikliğinde ilk sayfadan başla
     }, 300); // Debounce search
 
     if (searchTimeout) clearTimeout(searchTimeout);

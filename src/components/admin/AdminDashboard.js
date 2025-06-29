@@ -6,7 +6,8 @@ import CategoryManagement from '../../pages/admin/components/CategoryManagement'
 import OrderManagement from '../../pages/admin/components/OrderManagement';
 import ImageManagement from '../../pages/admin/components/ImageManagement';
 import ProductManagement from './ProductManagement';
-import axios from 'axios';
+import { productsAPI, categoriesAPI, ordersAPI, couponsAPI } from '../../services/api';
+import { config } from '../../utils/config';
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState({
@@ -29,14 +30,10 @@ const AdminDashboard = () => {
     const loadStats = async () => {
         try {
             const [productsResponse, categoriesResponse, couponsResponse, ordersResponse] = await Promise.all([
-                axios.get('http://localhost:9193/api/v1/products/all'),
-                axios.get('http://localhost:9193/api/v1/categories/all'),
-                axios.get('http://localhost:9193/api/v1/coupons/all').catch(() => ({ data: [] })),
-                axios.get('http://localhost:9193/api/v1/orders/admin/all', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                }).catch(() => ({ data: { data: [] } }))
+                productsAPI.getAllProducts(),
+                categoriesAPI.getAllCategories(),
+                couponsAPI.getAllCoupons().catch(() => ({ data: [] })),
+                ordersAPI.getAllOrders().catch(() => ({ data: { data: [] } }))
             ]);
             
             console.log('Dashboard stats - Products:', productsResponse.data);

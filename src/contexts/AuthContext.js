@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import api, { authAPI } from '../services/api';
+import { config } from '../utils/config';
 
 const AuthContext = createContext();
 
@@ -14,7 +15,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(localStorage.getItem(config.TOKEN_STORAGE_KEY));
   const [loading, setLoading] = useState(true);
 
   // Helper function to transform JWT token data to expected user format
@@ -29,7 +30,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const storedToken = localStorage.getItem('token');
+      const storedToken = localStorage.getItem(config.TOKEN_STORAGE_KEY);
       if (storedToken) {
         try {
           const decodedToken = jwtDecode(storedToken);
@@ -57,13 +58,13 @@ export const AuthProvider = ({ children }) => {
               // Keep the transformed JWT user data
             }
           } else {
-            localStorage.removeItem('token');
+            localStorage.removeItem(config.TOKEN_STORAGE_KEY);
             setToken(null);
             setUser(null);
           }
         } catch (error) {
           console.error('Token decode error:', error);
-          localStorage.removeItem('token');
+          localStorage.removeItem(config.TOKEN_STORAGE_KEY);
           setToken(null);
           setUser(null);
         }
@@ -90,7 +91,7 @@ export const AuthProvider = ({ children }) => {
       const decodedToken = jwtDecode(token);
       
       // Store token
-      localStorage.setItem('token', token);
+      localStorage.setItem(config.TOKEN_STORAGE_KEY, token);
       setToken(token);
       
       // Transform JWT data to expected format
@@ -132,7 +133,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem(config.TOKEN_STORAGE_KEY);
+    localStorage.removeItem(config.USER_STORAGE_KEY);
     setToken(null);
     setUser(null);
   };

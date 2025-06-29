@@ -3,7 +3,8 @@ import {
   FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaTags
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import { categoriesAPI } from '../../../services/api';
+import { categoriesAPI, productsAPI } from '../../../services/api';
+import { config } from '../../../utils/config';
 
 const CategoryManagement = ({ onStatsUpdate }) => {
   // State management
@@ -37,9 +38,8 @@ const CategoryManagement = ({ onStatsUpdate }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://localhost:9193/api/v1/products/all');
-      const data = await response.json();
-      setProducts(data.data || []);
+      const response = await productsAPI.getAllProducts();
+      setProducts(response.data.data || []);
     } catch (error) {
       console.error('Error fetching products:', error);
     }

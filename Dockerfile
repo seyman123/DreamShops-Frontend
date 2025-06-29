@@ -12,11 +12,17 @@ RUN npm ci --only=production
 # Copy source code
 COPY . .
 
+# Set environment variable for production build
+ENV REACT_APP_API_URL=https://e-commerceproject-7f8i.onrender.com/api/v1
+
 # Build the application
 RUN npm run build
 
 # Production stage with nginx
 FROM nginx:alpine
+
+# Install curl for health checks
+RUN apk add --no-cache curl
 
 # Copy built application
 COPY --from=build /app/build /usr/share/nginx/html

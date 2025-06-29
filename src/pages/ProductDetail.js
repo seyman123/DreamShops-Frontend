@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { toast } from 'react-toastify';
 import api from '../services/api';
+import { config, getProductImageUrl } from '../utils/config';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -199,20 +200,14 @@ const ProductDetail = () => {
             {/* Main Image */}
             <div className="glass rounded-2xl border border-white border-opacity-20 p-6 hover:shadow-xl hover:shadow-primary-500/20 transition-all duration-300">
               <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-300 rounded-xl flex items-center justify-center overflow-hidden">
-                {product.images && product.images.length > 0 ? (
-                  <img 
-                    src={`http://localhost:9193/api/v1/images/image/${product.images[selectedImage]?.id || product.images[0].id}`}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.src = '/images/placeholder.svg';
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                    <span className="text-gray-500 text-lg">Resim Yok</span>
-                  </div>
-                )}
+                <img
+                                        src={getProductImageUrl(product)}
+                  alt={product.name}
+                  className="w-full h-full object-cover rounded-lg"
+                  onError={(e) => {
+                    e.target.src = '/images/placeholder.svg';
+                  }}
+                />
               </div>
             </div>
 
@@ -221,7 +216,7 @@ const ProductDetail = () => {
               <div className="grid grid-cols-4 gap-4">
                 {product.images.map((image, index) => (
                   <button
-                    key={index}
+                    key={image.id}
                     onClick={() => setSelectedImage(index)}
                     className={`aspect-square rounded-xl overflow-hidden border-2 transition-all duration-300 ${
                       selectedImage === index 
@@ -229,10 +224,13 @@ const ProductDetail = () => {
                         : 'border-white border-opacity-20 hover:border-primary-300'
                     }`}
                   >
-                    <img 
-                      src={`http://localhost:9193/api/v1/images/image/${image.id}`}
+                    <img
+                                              src={`${config.API_BASE_URL}/images/image/${image.id}`}
                       alt={`${product.name} ${index + 1}`}
-                      className="w-full h-full object-cover"
+                      className={`w-20 h-20 object-cover rounded-lg cursor-pointer border-2 ${
+                        selectedImage === index ? 'border-blue-500' : 'border-gray-200'
+                      }`}
+                      onClick={() => setSelectedImage(index)}
                       onError={(e) => {
                         e.target.src = '/images/placeholder.svg';
                       }}

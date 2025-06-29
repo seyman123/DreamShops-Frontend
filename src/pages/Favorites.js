@@ -4,14 +4,15 @@ import { FaHeart, FaTrash, FaShoppingCart, FaEye } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { favoritesAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { useCart } from '../contexts/CartContext';
+import { useProductActions } from '../hooks/useProductActions';
+import { config, getProductImageUrl } from '../utils/config';
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { user, isAuthenticated } = useAuth();
-  const { addToCart } = useCart();
+  const { addToCart } = useProductActions();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -69,17 +70,14 @@ const Favorites = () => {
     }
   };
 
-  const handleAddToCart = (product) => {
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.images && product.images.length > 0 
-        ? `http://localhost:9193/api/v1/images/image/${product.images[0].id}`
-        : '/images/placeholder.svg',
-      quantity: 1
-    });
-    toast.success(`${product.name} sepete eklendi!`);
+  const handleAddToCart = async (product) => {
+    try {
+      await addToCart(product.id);
+      // Toast message is already handled in useProductActions
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Sepete eklenirken bir hata oluştu');
+    }
   };
 
   const formatPrice = (price) => {
@@ -90,10 +88,7 @@ const Favorites = () => {
   };
 
   const getImageUrl = (product) => {
-    if (product.images && product.images.length > 0) {
-      return `http://localhost:9193/api/v1/images/image/${product.images[0].id}`;
-    }
-    return '/images/placeholder.svg';
+    return getProductImageUrl(product);
   };
 
   if (loading) {
@@ -182,10 +177,10 @@ const Favorites = () => {
                   <div className="relative aspect-square bg-gradient-to-br from-gray-100 to-gray-300 overflow-hidden">
                     <img
                       src={getImageUrl(product)}
-                      alt={product?.name || 'Ürün'}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      alt={product.name}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                       onError={(e) => {
-                        e.target.src = '/images/placeholder.svg';
+                        e.target.src = config.DEFAULT_PLACEHOLDER;
                       }}
                     />
                     

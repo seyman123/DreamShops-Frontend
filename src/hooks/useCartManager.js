@@ -1,8 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import api from '../services/api';
+import { removeFromCart, clearCart as clearUserCart } from '../services/cartService';
 import { useCart } from '../contexts/CartContext';
 import logger from '../utils/logger';
+import { config, getProductImageUrl } from '../utils/config';
 
 export const useCartManager = () => {
   const { refreshCart } = useCart();
@@ -93,23 +95,80 @@ export const useCartManager = () => {
   const removeItem = useCallback(async (item) => {
     try {
       setUpdating(true);
+      console.log('=== REMOVING ITEM FROM CART ===');
+      console.log('Full item object:', JSON.stringify(item, null, 2));
+      console.log('Product object:', JSON.stringify(item.product, null, 2));
+      console.log('Product ID:', item.product?.id);
+      console.log('Product ID type:', typeof item.product?.id);
+      console.log('Item ID:', item.itemId);
+      console.log('Item ID type:', typeof item.itemId);
       
+      // Validate item data first
+      if (!item) {
+        toast.error('Ürün bilgisi bulunamadı');
+        return;
+      }
+      
+      if (!item.product || !item.product.id) {
+        console.error('Product or product ID is missing:', item);
+        toast.error('Ürün ID bilgisi bulunamadı');
+        return;
+      }
+      
+      // Get cart info first
       const cartResponse = await api.get('/carts/user/my-cart');
       const cart = cartResponse.data.data;
+      console.log('Cart response full:', JSON.stringify(cart, null, 2));
+      console.log('Cart ID:', cart?.cartId);
+      console.log('Cart ID type:', typeof cart?.cartId);
       
-      if (cart && cart.cartId) {
-        await api.delete(`/cartItems/cart/${cart.cartId}/item/${item.product.id}/remove`);
-        
-        setCartItems(prevItems => 
-          prevItems.filter(cartItem => cartItem.itemId !== item.itemId)
-        );
-        
-        await refreshCart();
-        toast.success('Ürün sepetten kaldırıldı');
+      if (!cart || !cart.cartId) {
+        console.error('Cart not found or cartId missing');
+        toast.error('Sepet bilgisi bulunamadı');
+        return;
       }
+      
+      // Ensure IDs are numbers (convert if necessary)
+      const cartId = Number(cart.cartId);
+      const productId = Number(item.product.id);
+      
+      console.log('Final IDs - Cart:', cartId, 'Product:', productId);
+      
+      if (isNaN(cartId) || isNaN(productId)) {
+        console.error('Invalid ID formats:', { cartId, productId });
+        toast.error('Geçersiz ID formatı');
+        return;
+      }
+      
+      // Use cartService function with proper parameters
+      await removeFromCart(cartId, productId);
+      console.log('Remove request successful');
+      
+      // Update local state
+      setCartItems(prevItems => 
+        prevItems.filter(cartItem => cartItem.itemId !== item.itemId)
+      );
+      
+      await refreshCart();
+      toast.success('Ürün sepetten kaldırıldı');
+      
     } catch (error) {
       console.error('Error removing item:', error);
-      toast.error('Ürün çıkarılırken bir hata oluştu');
+      console.log('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: error.config
+      });
+      
+      // More specific error messages
+      if (error.response?.status === 404) {
+        toast.error('Ürün sepette bulunamadı');
+      } else if (error.response?.status === 500) {
+        toast.error('Sunucu hatası. Lütfen daha sonra tekrar deneyin.');
+      } else {
+        toast.error('Ürün çıkarılırken bir hata oluştu');
+      }
     } finally {
       setUpdating(false);
     }
@@ -119,7 +178,17 @@ export const useCartManager = () => {
   const clearCart = useCallback(async () => {
     try {
       setUpdating(true);
-      await api.delete('/carts/user/clear');
+      
+      // Get cart info first for proper endpoint
+      const cartResponse = await api.get('/carts/user/my-cart');
+      const cart = cartResponse.data.data;
+      
+      if (cart && cart.cartId) {
+        await clearUserCart(cart.cartId);
+      } else {
+        // Fallback to user endpoint if cart not found
+        await api.delete('/carts/user/clear');
+      }
       
       setCartItems([]);
       await refreshCart();
@@ -162,10 +231,7 @@ export const useCartManager = () => {
 
   // Get image URL helper
   const getImageUrl = useCallback((product) => {
-    if (product?.images && product.images.length > 0) {
-      return `http://localhost:9193/api/v1${product.images[0].downloadUrl}`;
-    }
-    return '/images/placeholder.svg';
+    return getProductImageUrl(product);
   }, []);
 
   return {

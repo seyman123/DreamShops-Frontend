@@ -5,11 +5,14 @@ import { toast } from 'react-toastify';
 import api, { productsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
+import { useProductActions } from '../hooks/useProductActions';
+import { config } from '../utils/config';
 
 const Sale = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { refreshCart } = useCart();
+  const { addToCart, getImageUrl: getProductImageUrl } = useProductActions();
 
   const [timeLeft, setTimeLeft] = useState({
     hours: 23,
@@ -122,26 +125,9 @@ const Sale = () => {
       }
 
       setAddingToCart(product.id);
-      
-      // Önce kullanıcının sepetini al
-      const cartResponse = await api.get('/carts/user/my-cart');
-      const cart = cartResponse.data.data;
-      
-      if (cart && cart.cartId) {
-        // Sepete ürün ekle
-        await api.post(`/cartItems/cart/${cart.cartId}/item/${product.id}/add?quantity=1`);
-        await refreshCart();
-        toast.success(`${product.name} sepete eklendi!`);
-      } else {
-        throw new Error('Sepet bulunamadı');
-      }
+      await addToCart(product.id);
     } catch (error) {
       console.error('Error adding to cart:', error);
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
-      } else {
-        toast.error('Ürün sepete eklenirken bir hata oluştu.');
-      }
     } finally {
       setAddingToCart(null);
     }
@@ -163,11 +149,7 @@ const Sale = () => {
   };
 
   const getImageUrl = (product) => {
-    if (product.images && product.images.length > 0) {
-      // Backend image endpoint'ini kullan
-      return `http://localhost:9193/api/v1/images/image/${product.images[0].id}`;
-    }
-    return '/images/placeholder.svg';
+    return getProductImageUrl(product);
   };
 
   const getDiscountedPrice = (product) => {

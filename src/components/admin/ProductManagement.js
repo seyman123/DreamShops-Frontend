@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { FaBox, FaEdit, FaEye, FaTrash, FaImage, FaBolt, FaPlus, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import { productsAPI, categoriesAPI } from '../../services/api';
 import Pagination from '../Pagination';
+import { config, getProductImageUrl } from '../../utils/config';
 
 const ProductManagement = ({ onStatsUpdate }) => {
     const [products, setProducts] = useState([]);
@@ -35,8 +36,8 @@ const ProductManagement = ({ onStatsUpdate }) => {
         setLoading(true);
         try {
             const [productsResponse, categoriesResponse] = await Promise.all([
-                axios.get('http://localhost:9193/api/v1/products/all'),
-                axios.get('http://localhost:9193/api/v1/categories/all')
+                productsAPI.getAllProducts(),
+                categoriesAPI.getAllCategories()
             ]);
             
             console.log('Products API response:', productsResponse.data);
@@ -93,29 +94,11 @@ const ProductManagement = ({ onStatsUpdate }) => {
 
             if (editingProduct) {
                 // Ürün güncelleme
-                await axios.put(
-                    `http://localhost:9193/api/v1/products/product/${editingProduct.id}/update`,
-                    productData,
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }
-                    }
-                );
+                const response = await productsAPI.updateProduct(editingProduct.id, productData);
                 toast.success('Ürün başarıyla güncellendi!');
             } else {
                 // Yeni ürün ekleme
-                await axios.post(
-                    'http://localhost:9193/api/v1/products/add',
-                    productData,
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }
-                    }
-                );
+                const response = await productsAPI.addProduct(productData);
                 toast.success('Ürün başarıyla eklendi!');
             }
             
@@ -177,12 +160,7 @@ ${product.isOnSale ? `İndirimli Fiyat: ₺${product.effectivePrice}` : ''}
     const handleDeleteProduct = async (productId) => {
         if (window.confirm('Bu ürünü silmek istediğinizden emin misiniz?')) {
             try {
-                const token = localStorage.getItem('token');
-                await axios.delete(`http://localhost:9193/api/v1/products/product/${productId}/delete`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                await productsAPI.deleteProduct(productId);
                 toast.success('Ürün silindi');
                 loadData();
             } catch (error) {
@@ -373,7 +351,7 @@ ${product.isOnSale ? `İndirimli Fiyat: ₺${product.effectivePrice}` : ''}
                             <div className="relative h-32 bg-gradient-to-br from-gray-700 to-gray-800">
                                 {product.images && product.images.length > 0 ? (
                                     <img
-                                        src={`http://localhost:9193/api/v1/images/image/${product.images[0].id}`}
+                                        src={getProductImageUrl(product)}
                                         alt={product.name}
                                         className="w-full h-full object-cover"
                                         onError={(e) => {

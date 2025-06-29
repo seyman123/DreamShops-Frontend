@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import api from '../services/api';
 import logger from '../utils/logger';
+import { config, getProductImageUrl } from '../utils/config';
 
 export const useProductActions = () => {
   const [addingToCart, setAddingToCart] = useState({});
@@ -33,10 +34,19 @@ export const useProductActions = () => {
       return;
     }
 
+    // Check if user has valid token
+    const token = localStorage.getItem(config.TOKEN_STORAGE_KEY);
+    if (!token) {
+      toast.error('Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.');
+      return;
+    }
+
     try {
       setAddingToCart(prev => ({ ...prev, [productId]: true }));
 
       console.log('Adding product to cart:', productId);
+      console.log('User:', user);
+      console.log('Token exists:', !!token);
       
       // Önce kullanıcının sepetini al veya oluştur
       const cartResponse = await api.get('/carts/user/my-cart');
@@ -64,18 +74,25 @@ export const useProductActions = () => {
     } catch (error) {
       console.error('Error adding to cart:', error);
       console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error headers:', error.response?.headers);
       
       logger.error('Error adding to cart', error);
       
       if (error.response?.status === 401) {
         toast.error('Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.');
+        // Clear invalid token
+        localStorage.removeItem(config.TOKEN_STORAGE_KEY);
+        localStorage.removeItem(config.USER_STORAGE_KEY);
       } else if (error.response?.status === 404) {
         toast.error('Ürün bulunamadı');
       } else if (error.response?.status === 500) {
-        toast.error('Sunucu hatası. Lütfen tekrar deneyin.');
+        const errorMessage = error.response?.data?.message || 'Sunucu hatası';
+        toast.error(`Sunucu hatası: ${errorMessage}`);
         console.error('Server error details:', error.response?.data);
       } else {
-        toast.error('Ürün sepete eklenirken bir hata oluştu');
+        const errorMessage = error.response?.data?.message || error.message || 'Bilinmeyen hata';
+        toast.error(`Ürün sepete eklenirken hata: ${errorMessage}`);
       }
     } finally {
       setAddingToCart(prev => ({ ...prev, [productId]: false }));
@@ -125,12 +142,9 @@ export const useProductActions = () => {
     }
   }, [user]);
 
-  // Get image URL helper
+  // Get image URL helper (now uses centralized function)
   const getImageUrl = useCallback((product) => {
-    if (product.images && product.images.length > 0) {
-      return `http://localhost:9193/api/v1${product.images[0].downloadUrl}`;
-    }
-    return '/images/placeholder.svg';
+    return getProductImageUrl(product);
   }, []);
 
   return {
