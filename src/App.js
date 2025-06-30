@@ -4,6 +4,7 @@ import { ToastContainer } from 'react-toastify';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import NavbarComponent from './components/Navbar';
+import AdminDashboard from './components/admin/AdminDashboard';
 import 'react-toastify/dist/ReactToastify.css';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -18,12 +19,6 @@ const Profile = lazy(() => import('./pages/Profile'));
 const Orders = lazy(() => import('./pages/Orders'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 const AdminSales = lazy(() => import('./pages/AdminSales'));
-const AdminDashboard = lazy(() => 
-  import('./components/admin/AdminDashboard').catch(err => {
-    console.error('Failed to load AdminDashboard:', err);
-    return { default: () => <div>Admin Dashboard yüklenemedi</div> };
-  })
-);
 const About = lazy(() => import('./pages/About'));
 const Blog = lazy(() => import('./pages/Blog'));
 const Sale = lazy(() => import('./pages/Sale'));
@@ -45,7 +40,7 @@ function App() {
     <AuthProvider>
       <CartProvider>
         <ErrorBoundary>
-          <Router>
+          <Router basename="/">
             <div className="min-h-screen flex flex-col dark:bg-gradient-dark light:bg-gradient-light bg-gradient-light transition-colors duration-300">
               <NavbarComponent />
               <main className="flex-1 pt-0 animate-fade-in">
