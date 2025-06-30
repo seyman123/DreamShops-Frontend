@@ -14,7 +14,7 @@ export const useProductActions = () => {
   const { user } = useAuth();
   const { refreshCart } = useCart();
 
-  // Format price helper
+  // Format price helper - MEMOIZED
   const formatPrice = useCallback((price) => {
     if (typeof price === 'number') {
       return price.toLocaleString('tr-TR', {
@@ -43,39 +43,27 @@ export const useProductActions = () => {
 
     try {
       setAddingToCart(prev => ({ ...prev, [productId]: true }));
-
-      console.log('Adding product to cart:', productId);
-      console.log('User:', user);
-      console.log('Token exists:', !!token);
       
       // Önce kullanıcının sepetini al veya oluştur
       const cartResponse = await api.get('/carts/user/my-cart');
-      console.log('Cart response:', cartResponse.data);
       
       const cart = cartResponse.data.data;
 
       if (cart && cart.cartId) {
         // Backend'deki doğru endpoint'i kullan
-        console.log('Using cart ID:', cart.cartId);
         const addResponse = await api.post(`/cartItems/cart/${cart.cartId}/item/${productId}/add?quantity=1`);
-        console.log('Add response:', addResponse.data);
         
         await refreshCart();
         toast.success('Ürün sepete eklendi! 🛒');
       } else {
         // Sepet yoksa alternatif endpoint kullan
-        console.log('No cart found, using alternative endpoint');
         const addResponse = await api.post(`/cartItems/item/add?productId=${productId}&quantity=1`);
-        console.log('Add response:', addResponse.data);
         
         await refreshCart();
         toast.success('Ürün sepete eklendi! 🛒');
       }
     } catch (error) {
-      console.error('Error adding to cart:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      console.error('Error headers:', error.response?.headers);
+      
       
       logger.error('Error adding to cart', error);
       
@@ -89,7 +77,6 @@ export const useProductActions = () => {
       } else if (error.response?.status === 500) {
         const errorMessage = error.response?.data?.message || 'Sunucu hatası';
         toast.error(`Sunucu hatası: ${errorMessage}`);
-        console.error('Server error details:', error.response?.data);
       } else {
         const errorMessage = error.response?.data?.message || error.message || 'Bilinmeyen hata';
         toast.error(`Ürün sepete eklenirken hata: ${errorMessage}`);
@@ -142,7 +129,7 @@ export const useProductActions = () => {
     }
   }, [user]);
 
-  // Get image URL helper (now uses centralized function)
+  // Get image URL helper (now uses centralized function) - MEMOIZED
   const getImageUrl = useCallback((product) => {
     return getProductImageUrl(product);
   }, []);

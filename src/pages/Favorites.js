@@ -34,7 +34,6 @@ const Favorites = () => {
       }
       
       const response = await favoritesAPI.getUserFavorites(user.id);
-      console.log('Favorites response:', response);
       
       // Backend response yapısına göre veriyi parse et
       let favoritesData = [];
@@ -47,7 +46,6 @@ const Favorites = () => {
       setFavorites(favoritesData);
       setError('');
     } catch (error) {
-      console.error('Error fetching favorites:', error);
       setError('Favoriler yüklenirken bir hata oluştu');
     } finally {
       setLoading(false);
@@ -65,7 +63,6 @@ const Favorites = () => {
       setFavorites(prev => prev.filter(item => item.id !== productId));
       toast.success('Favorilerden kaldırıldı');
     } catch (error) {
-      console.error('Error removing favorite:', error);
       toast.error('Favori kaldırılırken bir hata oluştu');
     }
   };
@@ -75,7 +72,6 @@ const Favorites = () => {
       await addToCart(product.id);
       // Toast message is already handled in useProductActions
     } catch (error) {
-      console.error('Error adding to cart:', error);
       toast.error('Sepete eklenirken bir hata oluştu');
     }
   };

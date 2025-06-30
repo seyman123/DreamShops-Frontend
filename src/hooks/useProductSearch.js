@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useDebounce } from './useDebounce';
 
 export const useProductSearch = () => {
   const [searchParams] = useSearchParams();
@@ -9,6 +10,9 @@ export const useProductSearch = () => {
     const searchFromUrl = searchParams.get('search');
     return searchFromUrl ? decodeURIComponent(searchFromUrl) : '';
   });
+
+  // Debounced search term for API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   
   const [selectedCategory, setSelectedCategory] = useState(() => {
     const categoryFromUrl = searchParams.get('category');
@@ -59,6 +63,7 @@ export const useProductSearch = () => {
 
   return {
     searchTerm,
+    debouncedSearchTerm,
     setSearchTerm,
     selectedCategory,
     setSelectedCategory,

@@ -33,7 +33,6 @@ const AdminSales = () => {
       const salesResponse = await api.get('/sales/all').catch(() => ({ data: { data: [] } }));
       setSales(salesResponse.data.data || []);
     } catch (error) {
-      console.error('Error loading data:', error);
       toast.error('Veriler yüklenirken hata oluştu.');
       setSales([]);
     } finally {
@@ -65,7 +64,6 @@ const AdminSales = () => {
       
       resetForm();
     } catch (error) {
-      console.error('Error saving sale:', error);
       toast.error(error.response?.data?.message || 'İndirim kaydedilirken hata oluştu.');
     } finally {
       setLoading(false);
@@ -82,7 +80,6 @@ const AdminSales = () => {
       setSales(prev => prev.filter(sale => sale.id !== saleId));
       toast.success('İndirim başarıyla silindi!');
     } catch (error) {
-      console.error('Error deleting sale:', error);
       toast.error(error.response?.data?.message || 'İndirim silinirken hata oluştu.');
     }
   };

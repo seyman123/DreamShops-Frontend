@@ -45,7 +45,6 @@ export const useCouponManager = () => {
         toast.error(message);
       }
     } catch (error) {
-      console.error('Error applying coupon:', error);
       
       if (error.response) {
         const status = error.response.status;

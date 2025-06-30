@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FaImage } from 'react-icons/fa';
 
-const SmartImage = ({ 
+const SmartImage = React.memo(({ 
   src, 
   alt, 
   className = '', 
@@ -19,7 +19,7 @@ const SmartImage = ({
   const imgRef = useRef(null);
   const observerRef = useRef(null);
 
-  // Intersection Observer for lazy loading
+  // Intersection Observer for lazy loading - OPTIMIZED
   useEffect(() => {
     if (loading === 'lazy' && imgRef.current) {
       observerRef.current = new IntersectionObserver(
@@ -32,8 +32,8 @@ const SmartImage = ({
           });
         },
         {
-          rootMargin: '50px',
-          threshold: 0.1
+          rootMargin: '100px', // Increased for better UX
+          threshold: 0.01 // Lower threshold for faster loading
         }
       );
 
@@ -108,6 +108,6 @@ const SmartImage = ({
       )}
     </div>
   );
-};
+});
 
 export default SmartImage; 

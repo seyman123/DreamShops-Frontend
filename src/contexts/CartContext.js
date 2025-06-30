@@ -32,15 +32,10 @@ export const CartProvider = ({ children }) => {
   const fetchCart = async () => {
     try {
       setLoading(true);
-      console.log('Fetching cart for user:', user?.id);
+      
       
       const response = await cartAPI.getUserCart();
-      console.log('Cart response received');
-      
       const cart = response.data.data;
-      console.log('Cart exists:', !!cart);
-      console.log('Cart items exists:', !!cart?.items);
-      console.log('Cart items length:', cart?.items?.length);
       
       if (cart && cart.items && Array.isArray(cart.items) && cart.items.length > 0) {
         // Directly use the items array instead of Array.from to avoid circular reference issues
@@ -61,23 +56,18 @@ export const CartProvider = ({ children }) => {
           }
         }));
         
-        console.log('Processed cart items:', items.length);
+        
         setCartItems(items);
         const count = items.reduce((sum, item) => sum + item.quantity, 0);
         const total = items.reduce((sum, item) => sum + (item.totalPrice || item.unitPrice * item.quantity), 0);
-        console.log('Cart count calculated:', count);
-        console.log('Cart total calculated:', total);
         setCartCount(count);
         setCartTotal(total);
       } else {
-        console.log('No valid cart items found');
         setCartItems([]);
         setCartCount(0);
         setCartTotal(0);
       }
     } catch (error) {
-      console.error('Error fetching cart:', error);
-      console.error('Error details:', error.response?.data);
       setCartItems([]);
       setCartCount(0);
       setCartTotal(0);

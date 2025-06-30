@@ -2,19 +2,25 @@ import React from 'react';
 import { FaChevronLeft, FaChevronRight, FaEllipsisH } from 'react-icons/fa';
 
 const Pagination = ({ 
-  currentPage, 
-  totalPages, 
-  totalElements, 
-  size, 
+  currentPage = 0, 
+  totalPages = 1, 
+  totalElements = 0, 
+  size = 12, 
   onPageChange, 
   isLoading = false 
 }) => {
   
+  // Ensure all values are numbers
+  const safePage = Number(currentPage) || 0;
+  const safeTotal = Number(totalPages) || 1;
+  const safeElements = Number(totalElements) || 0;
+  const safeSize = Number(size) || 12;
+  
   // Don't show pagination if there's only one page or no data
-  if (totalPages <= 1) return null;
+  if (safeTotal <= 1) return null;
 
-  const startItem = currentPage * size + 1;
-  const endItem = Math.min((currentPage + 1) * size, totalElements);
+  const startItem = safePage * safeSize + 1;
+  const endItem = Math.min((safePage + 1) * safeSize, safeElements);
 
   // Generate page numbers to show
   const getPageNumbers = () => {
@@ -22,8 +28,8 @@ const Pagination = ({
     const range = [];
     const rangeWithDots = [];
 
-    for (let i = Math.max(0, currentPage - delta); 
-         i <= Math.min(totalPages - 1, currentPage + delta); 
+    for (let i = Math.max(0, safePage - delta); 
+         i <= Math.min(safeTotal - 1, safePage + delta); 
          i++) {
       range.push(i);
     }
@@ -37,11 +43,11 @@ const Pagination = ({
 
     rangeWithDots.push(...range);
 
-    if (range[range.length - 1] < totalPages - 2) {
-      if (range[range.length - 1] < totalPages - 3) {
+    if (range[range.length - 1] < safeTotal - 2) {
+      if (range[range.length - 1] < safeTotal - 3) {
         rangeWithDots.push('...');
       }
-      rangeWithDots.push(totalPages - 1);
+      rangeWithDots.push(safeTotal - 1);
     }
 
     return rangeWithDots;
@@ -57,7 +63,7 @@ const Pagination = ({
         {' - '}
         <span className="font-medium">{endItem}</span>
         {' / '}
-        <span className="font-medium">{totalElements}</span>
+        <span className="font-medium">{safeElements}</span>
         {' sonuç gösteriliyor'}
       </div>
 
@@ -65,11 +71,11 @@ const Pagination = ({
       <div className="flex items-center space-x-1">
         {/* Previous button */}
         <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 0 || isLoading}
+          onClick={() => onPageChange(safePage - 1)}
+          disabled={safePage === 0 || isLoading}
           className={`
             flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200
-            ${currentPage === 0 || isLoading
+            ${safePage === 0 || isLoading
               ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
               : 'bg-gray-700 text-white hover:bg-primary-500'
             }
@@ -91,7 +97,7 @@ const Pagination = ({
             );
           }
 
-          const isActive = pageNumber === currentPage;
+          const isActive = pageNumber === safePage;
           
           return (
             <button
@@ -115,11 +121,11 @@ const Pagination = ({
 
         {/* Next button */}
         <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage >= totalPages - 1 || isLoading}
+          onClick={() => onPageChange(safePage + 1)}
+          disabled={safePage >= safeTotal - 1 || isLoading}
           className={`
             flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200
-            ${currentPage >= totalPages - 1 || isLoading
+            ${safePage >= safeTotal - 1 || isLoading
               ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
               : 'bg-gray-700 text-white hover:bg-primary-500'
             }

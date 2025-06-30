@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUpload, FaTrash, FaEye, FaImage, FaEdit } from 'react-icons/fa';
+import { FaUpload, FaTrash, FaEye, FaImage } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { imagesAPI, productsAPI } from '../../../services/api';
 import Pagination from '../../../components/Pagination';
@@ -15,7 +15,7 @@ const ImageManagement = ({ onStatsUpdate }) => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12);
-  const [totalPages, setTotalPages] = useState(1);
+  //const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     loadImages();
@@ -153,9 +153,9 @@ const ImageManagement = ({ onStatsUpdate }) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('tr-TR');
-  };
+  //const formatDate = (dateString) => {
+  //  return new Date(dateString).toLocaleDateString('tr-TR');
+  //};
 
   const handlePageChange = (page) => {
     setCurrentPage(page);

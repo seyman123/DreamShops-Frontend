@@ -66,7 +66,6 @@ const Profile = () => {
   const fetchAddresses = async () => {
     try {
       const response = await api.get('/addresses');
-      console.log('Address response:', response.data);
       // Backend API response yapısı: { message: "...", data: [...] }
       setAddresses(response.data.data || response.data || []);
     } catch (error) {

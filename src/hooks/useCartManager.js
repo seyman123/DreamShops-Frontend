@@ -17,44 +17,33 @@ export const useCartManager = () => {
   // Fetch cart items
   const fetchCartItems = useCallback(async (user) => {
     if (!user) {
-      console.log('No user provided to fetchCartItems');
       return;
     }
     
-    console.log('=== FETCHING CART ITEMS ===');
-    console.log('User:', user);
     
     try {
       setLoading(true);
       
       const response = await api.get('/carts/user/my-cart');
-      console.log('Cart fetch response:', response.data);
       
       if (response.data && response.data.data) {
         const cart = response.data.data;
-        console.log('Cart data:', cart);
         
         // Backend'de field adı "items" ama "cartItems" de deneyelim
         const items = cart.items || cart.cartItems || [];
-        console.log('Cart items:', items);
-        console.log('Cart items length:', items.length);
-        console.log('Available cart fields:', Object.keys(cart));
         
         setCartItems(items);
       } else {
-        console.log('No cart data found, setting empty array');
         setCartItems([]);
       }
       
       setError('');
     } catch (error) {
-      console.error('Error fetching cart:', error);
       logger.error('Error fetching cart', error, { userId: user?.id });
       setError('Sepet yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
       setCartItems([]);
     } finally {
       setLoading(false);
-      console.log('=== FETCH CART ITEMS COMPLETED ===');
     }
   }, []);
 
@@ -84,7 +73,6 @@ export const useCartManager = () => {
         toast.success(`Miktar ${newQuantity} olarak güncellendi`);
       }
     } catch (error) {
-      console.error('Error updating quantity:', error);
       toast.error('Miktar güncellenirken bir hata oluştu');
     } finally {
       setUpdating(false);
@@ -95,13 +83,7 @@ export const useCartManager = () => {
   const removeItem = useCallback(async (item) => {
     try {
       setUpdating(true);
-      console.log('=== REMOVING ITEM FROM CART ===');
-      console.log('Full item object:', JSON.stringify(item, null, 2));
-      console.log('Product object:', JSON.stringify(item.product, null, 2));
-      console.log('Product ID:', item.product?.id);
-      console.log('Product ID type:', typeof item.product?.id);
-      console.log('Item ID:', item.itemId);
-      console.log('Item ID type:', typeof item.itemId);
+      
       
       // Validate item data first
       if (!item) {
@@ -110,7 +92,6 @@ export const useCartManager = () => {
       }
       
       if (!item.product || !item.product.id) {
-        console.error('Product or product ID is missing:', item);
         toast.error('Ürün ID bilgisi bulunamadı');
         return;
       }
@@ -118,12 +99,9 @@ export const useCartManager = () => {
       // Get cart info first
       const cartResponse = await api.get('/carts/user/my-cart');
       const cart = cartResponse.data.data;
-      console.log('Cart response full:', JSON.stringify(cart, null, 2));
-      console.log('Cart ID:', cart?.cartId);
-      console.log('Cart ID type:', typeof cart?.cartId);
+      
       
       if (!cart || !cart.cartId) {
-        console.error('Cart not found or cartId missing');
         toast.error('Sepet bilgisi bulunamadı');
         return;
       }
@@ -132,17 +110,14 @@ export const useCartManager = () => {
       const cartId = Number(cart.cartId);
       const productId = Number(item.product.id);
       
-      console.log('Final IDs - Cart:', cartId, 'Product:', productId);
       
       if (isNaN(cartId) || isNaN(productId)) {
-        console.error('Invalid ID formats:', { cartId, productId });
         toast.error('Geçersiz ID formatı');
         return;
       }
       
       // Use cartService function with proper parameters
       await removeFromCart(cartId, productId);
-      console.log('Remove request successful');
       
       // Update local state
       setCartItems(prevItems => 
@@ -153,13 +128,7 @@ export const useCartManager = () => {
       toast.success('Ürün sepetten kaldırıldı');
       
     } catch (error) {
-      console.error('Error removing item:', error);
-      console.log('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        config: error.config
-      });
+      
       
       // More specific error messages
       if (error.response?.status === 404) {
@@ -195,7 +164,6 @@ export const useCartManager = () => {
       
       toast.success('Sepet temizlendi');
     } catch (error) {
-      console.error('Error clearing cart:', error);
       toast.error('Sepet temizlenirken bir hata oluştu');
     } finally {
       setUpdating(false);

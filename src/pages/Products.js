@@ -8,11 +8,13 @@ import ProductGrid from '../components/products/ProductGrid';
 import { useProductSearch } from '../hooks/useProductSearch';
 import { useProductPagination } from '../hooks/useProductPagination';
 import { useProductActions } from '../hooks/useProductActions';
+import imagePreloader from '../utils/imagePreloader';
 
 const Products = () => {
   // Custom hooks
   const {
     searchTerm,
+    debouncedSearchTerm,
     selectedCategory,
     sortBy,
     searchTimeout,
@@ -54,13 +56,15 @@ const Products = () => {
   const [error, setError] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Fetch data functions
+  // Fetch data functions - OPTIMIZED
   const fetchCategories = async () => {
     try {
       const response = await api.get('/categories/all');
-      setCategories(response.data.data || []);
+      const categoriesData = response.data.data || response.data || [];
+      setCategories(categoriesData);
     } catch (error) {
       logger.error('Error fetching categories', error);
+      setCategories([]); // Fallback to empty array
     }
   };
 
@@ -78,13 +82,13 @@ const Products = () => {
 
       let endpoint = '/products/paginated';
       
-      if (searchTerm && selectedCategory) {
+      if (debouncedSearchTerm && selectedCategory) {
         endpoint = '/products/search/paginated';
-        params.search = searchTerm;
+        params.search = debouncedSearchTerm;
         params.category = selectedCategory;
-      } else if (searchTerm) {
+      } else if (debouncedSearchTerm) {
         endpoint = '/products/search/paginated';
-        params.search = searchTerm;
+        params.search = debouncedSearchTerm;
       } else if (selectedCategory) {
         endpoint = '/products/category/paginated';
         params.category = selectedCategory;
@@ -93,19 +97,33 @@ const Products = () => {
       const response = await api.get(endpoint, { params });
       const responseData = response.data.data;
 
+
       // Server-side pagination response yapısını kontrol et
       if (responseData && typeof responseData === 'object' && responseData.products) {
         // Paginated response
-        setProducts(responseData.products || []);
+        const products = responseData.products || [];
+        setProducts(products);
         setCurrentPage(responseData.currentPage || 0);
         setTotalPages(responseData.totalPages || 0);
         setTotalElements(responseData.totalElements || 0);
+        
+        
+        
+        // Preload product images for better UX
+        if (products.length > 0) {
+          imagePreloader.preloadProductImages(products, getImageUrl).catch(console.error);
+        }
       } else {
         // Fallback: Non-paginated response - client-side pagination uygula
         const allProducts = responseData || [];
         const sortedProducts = sortProducts(allProducts, sortBy);
         const currentPageProducts = updatePaginationData(sortedProducts, true);
         setProducts(currentPageProducts);
+        
+        // Preload images for fallback case too
+        if (currentPageProducts.length > 0) {
+          imagePreloader.preloadProductImages(currentPageProducts, getImageUrl).catch(console.error);
+        }
       }
 
     } catch (error) {
@@ -188,7 +206,6 @@ const Products = () => {
 
   // Handle sort change with server-side pagination
   const onSortChange = (newSortBy) => {
-    console.log('Sort changed to:', newSortBy);
     handleSortChange(newSortBy);
     
     // Sıralama değiştiğinde ilk sayfadan başla
@@ -219,24 +236,28 @@ const Products = () => {
     }
   };
 
-  // Effects
+  // Effects - OPTIMIZED to prevent multiple requests
   useEffect(() => {
-    fetchCategories();
-    fetchUserFavorites();
-  }, [fetchUserFavorites]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchProducts(0); // Her arama/filtre değişikliğinde ilk sayfadan başla
-    }, 300); // Debounce search
-
-    if (searchTimeout) clearTimeout(searchTimeout);
-    setSearchTimeout(timer);
-
-    return () => {
-      if (timer) clearTimeout(timer);
+    // Load categories and favorites once on component mount
+    const loadInitialData = async () => {
+      try {
+        // Fetch in parallel to reduce request time
+        await Promise.all([
+          fetchCategories(),
+          fetchUserFavorites()
+        ]);
+      } catch (error) {
+        console.error('Error loading initial data:', error);
+      }
     };
-  }, [searchTerm, selectedCategory, sortBy]);
+    
+    loadInitialData();
+  }, []); // Remove fetchUserFavorites dependency to prevent re-runs
+
+  useEffect(() => {
+    // Use debouncedSearchTerm instead of searchTerm to prevent excessive API calls
+    fetchProducts(0); // Her arama/filtre değişikliğinde ilk sayfadan başla
+  }, [debouncedSearchTerm, selectedCategory, sortBy]);
 
   // Render
   return (
@@ -288,7 +309,10 @@ const Products = () => {
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
+            totalElements={totalElements}
+            size={pageSize}
             onPageChange={onPageChange}
+            isLoading={loading}
           />
         </div>
       )}

@@ -37,13 +37,10 @@ export const saleService = {
   // Admin: Put product on sale
   putProductOnSale: async (productId, saleData) => {
     try {
-      console.log('PUT request details:');
-      console.log('Product ID:', productId);
-      console.log('Sale Data:', saleData);
+     
       
       const response = await api.put(`/sales/product/${productId}/sale`, saleData);
       
-      console.log('PUT response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error putting product on sale:');

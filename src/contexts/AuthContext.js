@@ -54,7 +54,6 @@ export const AuthProvider = ({ children }) => {
                 });
               }
             } catch (error) {
-              console.error('Error fetching user details:', error);
               // Keep the transformed JWT user data
             }
           } else {
@@ -63,7 +62,6 @@ export const AuthProvider = ({ children }) => {
             setUser(null);
           }
         } catch (error) {
-          console.error('Token decode error:', error);
           localStorage.removeItem(config.TOKEN_STORAGE_KEY);
           setToken(null);
           setUser(null);
@@ -111,13 +109,11 @@ export const AuthProvider = ({ children }) => {
           });
         }
       } catch (error) {
-        console.error('Error fetching user details after login:', error);
         // Keep the transformed JWT user data
       }
       
       return true;
     } catch (error) {
-      console.error('Login error:', error);
       
       // Handle specific error cases
       if (error.response?.status === 401) {

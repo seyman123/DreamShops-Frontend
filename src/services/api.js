@@ -80,13 +80,49 @@ export const productsAPI = {
   getProductsPaginatedLegacy: (params) => api.get('/products/all', { params }),
 };
 
-// Categories API - ACTIVE METHODS ONLY
+// Categories API - ACTIVE METHODS ONLY with Frontend Cache
 export const categoriesAPI = {
-  getAllCategories: () => api.get('/categories/all'),
+  getAllCategories: async () => {
+    // Import cache dynamically to avoid circular dependency
+    const { default: frontendCache } = await import('../utils/cache');
+    
+    // Check cache first
+    const cached = frontendCache.get(frontendCache.constructor.KEYS.CATEGORIES);
+    if (cached) {
+      return { data: cached };
+    }
+    
+    // Cache miss - fetch from API
+    const response = await api.get('/categories/all');
+    
+    // Cache for 30 minutes (categories rarely change)
+    frontendCache.set(frontendCache.constructor.KEYS.CATEGORIES, response.data, 30);
+    
+    return response;
+  },
+  
   getCategoryById: (id) => api.get(`/categories/category/${id}/category`),
-  addCategory: (categoryData) => api.post('/categories/add', categoryData),
-  updateCategory: (id, categoryData) => api.put(`/categories/category/${id}/update`, categoryData),
-  deleteCategory: (id) => api.delete(`/categories/category/${id}/delete`),
+  addCategory: async (categoryData) => {
+    const response = await api.post('/categories/add', categoryData);
+    // Clear categories cache when new category is added
+    const { default: frontendCache } = await import('../utils/cache');
+    frontendCache.delete(frontendCache.constructor.KEYS.CATEGORIES);
+    return response;
+  },
+  updateCategory: async (id, categoryData) => {
+    const response = await api.put(`/categories/category/${id}/update`, categoryData);
+    // Clear categories cache when category is updated
+    const { default: frontendCache } = await import('../utils/cache');
+    frontendCache.delete(frontendCache.constructor.KEYS.CATEGORIES);
+    return response;
+  },
+  deleteCategory: async (id) => {
+    const response = await api.delete(`/categories/category/${id}/delete`);
+    // Clear categories cache when category is deleted
+    const { default: frontendCache } = await import('../utils/cache');
+    frontendCache.delete(frontendCache.constructor.KEYS.CATEGORIES);
+    return response;
+  },
   
   // Legacy alias
   getCategory: (id) => api.get(`/categories/category/${id}/category`),
@@ -114,7 +150,7 @@ export const imagesAPI = {
   getImage: (imageId) => api.get(`/images/image/${imageId}`, { responseType: 'blob' }),
   deleteImage: (imageId) => api.delete(`/images/image/${imageId}/delete`),
   
-  // Utility method for frontend image URL generation
+  // Utility method for frontend image URL generation - FIXED: Use full API URL
   getImageUrl: (imageId) => `${config.API_BASE_URL}/images/image/${imageId}`,
 };
 
@@ -181,24 +217,55 @@ export const ordersAPI = {
   getOrder: (orderId) => api.get(`/orders/${orderId}/order`),
 };
 
-// Favorites API - ACTIVE METHODS ONLY
+// Favorites API - ACTIVE METHODS ONLY with Frontend Cache
 export const favoritesAPI = {
-  // Currently used methods
-  getUserFavorites: (userId) => api.get(`/favorites/user/${userId}`),
-  addToFavorites: (userId, productId) => api.post(`/favorites/add?userId=${userId}&productId=${productId}`),
-  removeFromFavorites: (userId, productId) => api.delete(`/favorites/remove?userId=${userId}&productId=${productId}`),
+  // Currently used methods with cache
+  getUserFavorites: async (userId) => {
+    const { default: frontendCache } = await import('../utils/cache');
+    
+    // Check cache first
+    const cacheKey = frontendCache.constructor.KEYS.USER_FAVORITES(userId);
+    const cached = frontendCache.get(cacheKey);
+    if (cached) {
+      return { data: cached };
+    }
+    
+    // Cache miss - fetch from API
+    const response = await api.get(`/favorites/user/${userId}`);
+    
+    // Cache for 5 minutes (favorites change more frequently)
+    frontendCache.set(cacheKey, response.data, 5);
+    
+    return response;
+  },
+  
+  addToFavorites: async (userId, productId) => {
+    const response = await api.post(`/favorites/add?userId=${userId}&productId=${productId}`);
+    // Clear favorites cache when new favorite is added
+    const { default: frontendCache } = await import('../utils/cache');
+    frontendCache.delete(frontendCache.constructor.KEYS.USER_FAVORITES(userId));
+    return response;
+  },
+  
+  removeFromFavorites: async (userId, productId) => {
+    const response = await api.delete(`/favorites/remove?userId=${userId}&productId=${productId}`);
+    // Clear favorites cache when favorite is removed
+    const { default: frontendCache } = await import('../utils/cache');
+    frontendCache.delete(frontendCache.constructor.KEYS.USER_FAVORITES(userId));
+    return response;
+  },
   
   // Convenience method for current user
-  getCurrentUserFavorites: () => {
+  getCurrentUserFavorites: async () => {
     const user = JSON.parse(localStorage.getItem(config.USER_STORAGE_KEY) || '{}');
     if (user.id) {
-      return api.get(`/favorites/user/${user.id}`);
+      return favoritesAPI.getUserFavorites(user.id);
     }
     return Promise.resolve({ data: { data: [] } });
   },
   
   // Legacy alias
-  getFavorites: (userId) => api.get(`/favorites/user/${userId}`),
+  getFavorites: (userId) => favoritesAPI.getUserFavorites(userId),
 };
 
 // Sales API - ACTIVELY USED

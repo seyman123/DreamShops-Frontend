@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { FaBox, FaEdit, FaEye, FaTrash, FaImage, FaBolt, FaPlus, FaTimes } from 'react-icons/fa';
+import React, { useState, useEffect, useRef } from 'react';
+import { FaBox, FaEdit, FaEye, FaTrash, FaImage, FaBolt, FaPlus, FaTimes, FaSync } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { productsAPI, categoriesAPI } from '../../services/api';
 import Pagination from '../Pagination';
@@ -28,43 +28,134 @@ const ProductManagement = ({ onStatsUpdate }) => {
     const [itemsPerPage] = useState(8);
     const [totalPages, setTotalPages] = useState(1);
 
+    // Prevent duplicate API calls
+    const isLoadingRef = useRef(false);
+    const hasLoadedRef = useRef(false);
+
     useEffect(() => {
-        loadData();
+        // Only load data once on mount, prevent duplicate calls
+        if (!hasLoadedRef.current && !isLoadingRef.current) {
+            loadData();
+        }
     }, []);
 
     const loadData = async () => {
+        // Prevent duplicate API calls
+        if (isLoadingRef.current) {
+            console.log('🚫 ProductManagement: Data loading already in progress, skipping...');
+            return;
+        }
+
+        isLoadingRef.current = true;
         setLoading(true);
+        
         try {
-            const [productsResponse, categoriesResponse] = await Promise.all([
-                productsAPI.getAllProducts(),
-                categoriesAPI.getAllCategories()
-            ]);
+            console.log('📦 ProductManagement: Loading products and categories...');
             
-            console.log('Products API response:', productsResponse.data);
-            console.log('Categories API response:', categoriesResponse.data);
-            
-            // Backend ApiResponse wrapper kullanıyor, data field'ına erişmemiz gerekiyor
-            const productsData = productsResponse.data?.data ? 
-                (Array.isArray(productsResponse.data.data) ? productsResponse.data.data : []) :
-                (Array.isArray(productsResponse.data) ? productsResponse.data : []);
-                
-            const categoriesData = categoriesResponse.data?.data ? 
-                (Array.isArray(categoriesResponse.data.data) ? categoriesResponse.data.data : []) :
-                (Array.isArray(categoriesResponse.data) ? categoriesResponse.data : []);
-            
-            console.log('Parsed products data:', productsData);
-            console.log('Parsed categories data:', categoriesData);
-            
-            setProducts(productsData);
-            setCategories(categoriesData);
-            onStatsUpdate && onStatsUpdate();
-        } catch (error) {
-            console.error('Error loading data:', error);
-            toast.error('Veriler yüklenirken hata oluştu');
+            // Show loading immediately
             setProducts([]);
             setCategories([]);
+            
+            // Use paginated endpoint instead of /all to avoid cache issues
+            const [productResponse, categoryResponse] = await Promise.all([
+                productsAPI.getProductsPaginated({ page: 0, size: 100 }), // Get first 100 products
+                categoriesAPI.getAllCategories()
+            ]);
+
+            // Handle paginated response structure
+            const productsData = productResponse.data?.data?.products || 
+                                productResponse.data?.products || 
+                                productResponse.data?.data || 
+                                [];
+            
+            const categoriesData = categoryResponse.data?.data || categoryResponse.data || [];
+            
+            // Process data in chunks to avoid blocking UI
+            console.log('🔄 Processing data in chunks to avoid UI blocking...');
+            
+            // Set categories first (smaller dataset)
+            setCategories(categoriesData);
+            
+            // Process products in batches using setTimeout to yield to browser
+            const batchSize = 10;
+            const processBatch = (startIndex) => {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        const endIndex = Math.min(startIndex + batchSize, productsData.length);
+                        const batch = productsData.slice(0, endIndex);
+                        
+                        setProducts(batch);
+                        
+                        if (endIndex < productsData.length) {
+                            processBatch(endIndex).then(resolve);
+                        } else {
+                            resolve();
+                        }
+                    }, 0); // Yield to browser
+                });
+            };
+
+            // Start batch processing
+            await processBatch(0);
+
+            // Update stats in parent component with specific data
+            if (onStatsUpdate) {
+                onStatsUpdate({
+                    totalProducts: productsData.length,
+                    totalCategories: categoriesData.length
+                });
+            }
+
+            console.log(`✅ ProductManagement: Loaded ${productsData.length} products and ${categoriesData.length} categories`);
+            hasLoadedRef.current = true;
+        } catch (error) {
+            console.error('❌ ProductManagement: Error loading data:', error);
+            
+            // Fallback: Try categories only if products fail
+            try {
+                const categoryResponse = await categoriesAPI.getAllCategories();
+                const categoriesData = categoryResponse.data?.data || categoryResponse.data || [];
+                setCategories(categoriesData);
+                
+                // Show warning but don't crash
+                toast.warn('Ürünler yüklenemedi, ancak kategoriler yüklendi. Cache sorunu olabilir.');
+            } catch (catError) {
+                console.error('❌ ProductManagement: Categories also failed:', catError);
+                toast.error('Veri yüklenirken hata oluştu');
+            }
         } finally {
             setLoading(false);
+            isLoadingRef.current = false;
+        }
+    };
+
+    // Clear backend cache function
+    const clearCache = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('Admin yetkisi gerekli');
+                return;
+            }
+
+            const response = await fetch(`${config.API_BASE_URL}/products/admin/clear-cache`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                toast.success('🧹 Cache başarıyla temizlendi!');
+                // Reload data after cache clear
+                setTimeout(() => loadData(), 1000);
+            } else {
+                throw new Error(`HTTP ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Cache clear error:', error);
+            toast.error('Cache temizlenirken hata oluştu');
         }
     };
 
@@ -192,14 +283,16 @@ ${product.isOnSale ? `İndirimli Fiyat: ₺${product.effectivePrice}` : ''}
     const endIndex = startIndex + itemsPerPage;
     const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
     
-    // Update total pages when filtered products change
+    // Update total pages when filtered products change - OPTIMIZED
     useEffect(() => {
         const newTotalPages = Math.ceil(totalItems / itemsPerPage);
-        setTotalPages(newTotalPages);
+        if (totalPages !== newTotalPages) {
+            setTotalPages(newTotalPages);
+        }
         if (currentPage > newTotalPages && newTotalPages > 0) {
             setCurrentPage(1);
         }
-    }, [filteredProducts.length, currentPage, itemsPerPage, totalItems]);
+    }, [totalItems, itemsPerPage]); // Remove currentPage and filteredProducts.length from dependencies
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
@@ -252,13 +345,25 @@ ${product.isOnSale ? `İndirimli Fiyat: ₺${product.effectivePrice}` : ''}
         );
     };
 
-    if (loading && products.length === 0) {
+    if (loading) {
         return (
-            <div className="flex items-center justify-center py-12">
-                <div className="flex items-center space-x-3">
+            <div className="flex flex-col items-center justify-center py-12">
+                <div className="flex items-center space-x-3 mb-4">
                     <div className="w-8 h-8 border-t-4 border-primary-500 rounded-full animate-spin"></div>
                     <span className="text-white text-lg">Yükleniyor...</span>
                 </div>
+                <div className="text-gray-400 text-sm">
+                    {products.length === 0 ? 'Veriler getiriliyor...' : `${products.length} ürün işleniyor...`}
+                </div>
+                {/* Progress bar for batch processing */}
+                {products.length > 0 && (
+                    <div className="w-64 bg-gray-700 rounded-full h-2 mt-4">
+                        <div 
+                            className="bg-primary-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${Math.min((products.length / 100) * 100, 100)}%` }}
+                        ></div>
+                    </div>
+                )}
             </div>
         );
     }
@@ -274,13 +379,23 @@ ${product.isOnSale ? `İndirimli Fiyat: ₺${product.effectivePrice}` : ''}
                     </h2>
                     <p className="text-gray-400 mt-2">Tüm ürünlerinizi buradan yönetebilirsiniz</p>
                 </div>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
-                >
-                    <FaPlus className="inline mr-2" />
-                    Yeni Ürün Ekle
-                </button>
+                <div className="flex space-x-3">
+                    <button
+                        onClick={clearCache}
+                        className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white px-4 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
+                        title="Cache Temizle"
+                    >
+                        <FaSync className="inline mr-2" />
+                        Cache Temizle
+                    </button>
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
+                    >
+                        <FaPlus className="inline mr-2" />
+                        Yeni Ürün Ekle
+                    </button>
+                </div>
             </div>
 
             {/* Filtreler */}

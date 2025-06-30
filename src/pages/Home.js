@@ -11,7 +11,6 @@ const Home = () => {
         const categoriesResponse = await categoriesAPI.getAllCategories();
         setCategories(categoriesResponse.data.data || []);
       } catch (error) {
-        console.error('Error fetching data:', error);
       }
     };
 

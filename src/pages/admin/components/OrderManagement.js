@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   FaCheck, FaBan, FaClock, FaUser, FaCalendar, 
   FaBox, FaShoppingCart, FaEye, FaTruck, FaCheckCircle, FaTimesCircle,
-  FaTimes, FaMapMarkerAlt, FaGift
+  FaTimes, FaGift
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { ordersAPI } from '../../../services/api';

@@ -95,11 +95,8 @@ const Cart = () => {
       setCheckingOut(true);
 
       // Backend'de placeOrder metodu kullanılıyor, kupon kodu ile birlikte
-      console.log('Creating order for user:', user.id);
-      console.log('Applied coupon:', appliedCoupon);
 
       const response = await ordersAPI.placeOrder(user.id, appliedCoupon?.code);
-      console.log('Order response:', response.data);
       
       if (response.data && response.data.success !== false) {
         await clearCart();
@@ -109,7 +106,6 @@ const Cart = () => {
         throw new Error(response.data?.message || 'Sipariş oluşturulamadı');
       }
     } catch (error) {
-      console.error('Checkout error:', error);
       if (error.response?.status === 400) {
         toast.error(error.response.data?.message || 'Sipariş bilgilerinde hata var');
       } else if (error.response?.status === 404) {

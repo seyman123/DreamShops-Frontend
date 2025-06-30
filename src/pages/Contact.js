@@ -21,7 +21,6 @@ const Contact = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Form gönderme işlemi burada yapılacak
-    console.log('Form data:', formData);
     setShowAlert(true);
     setTimeout(() => setShowAlert(false), 5000);
     
@@ -38,22 +37,22 @@ const Contact = () => {
     {
       icon: <FaPhone />,
       title: "Telefon",
-      info: "+90 (212) 555 0123",
+      info: "+90 (555) 106 7814",
       subInfo: "Pazartesi - Cuma: 09:00 - 18:00",
       color: "text-primary-500"
     },
     {
       icon: <FaEnvelope />,
       title: "E-posta",
-      info: "info@iphonex.com",
+      info: "seyman@gmail.com",
       subInfo: "24 saat içinde yanıt veriyoruz",
       color: "text-accent-500"
     },
     {
       icon: <FaMapMarkerAlt />,
       title: "Adres",
-      info: "Maslak Mahallesi, Teknoloji Caddesi No:42",
-      subInfo: "Sarıyer/İstanbul",
+      info: "Bahçelievler Mahallesi, KYK Erkek Öğrenci Yurdu",
+      subInfo: "Gölbaşı/Ankara",
       color: "text-secondary-500"
     },
     {
@@ -205,9 +204,9 @@ const Contact = () => {
                 <FaMapMarkerAlt size={60} className="text-secondary-400 mx-auto mb-4" />
                 <div className="text-white space-y-2">
                   <p className="font-bold text-lg">iPhone X Mağaza</p>
-                  <p className="text-gray-300">Maslak Mahallesi</p>
-                  <p className="text-gray-300">Teknoloji Caddesi No:42</p>
-                  <p className="text-gray-300">Sarıyer/İstanbul</p>
+                  <p className="text-gray-300">Bahçelievler Mahallesi</p>
+                  <p className="text-gray-300">KYK Erkek Öğrenci Yurdu</p>
+                  <p className="text-gray-300">Gölbaşı/Ankara</p>
                 </div>
                 <button className="mt-6 border border-secondary-400 text-secondary-400 hover:bg-secondary-400 hover:text-white px-6 py-2 rounded-lg transition-all duration-300">
                   Haritada Görüntüle

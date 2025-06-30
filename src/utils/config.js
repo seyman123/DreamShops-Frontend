@@ -30,15 +30,30 @@ export const getProductImageUrl = (product) => {
   if (!product || !product.images || product.images.length === 0) {
     return config.DEFAULT_PLACEHOLDER;
   }
-  
-  // Use the downloadUrl from the product if available
-  if (product.images[0].downloadUrl) {
-    return `${config.API_BASE_URL}${product.images[0].downloadUrl}`;
+
+  const image = product.images[0];
+
+  // Use downloadUrl if available
+  if (image.downloadUrl) {
+    return `${config.API_BASE_URL}${image.downloadUrl}`;
   }
-  
-  // Fallback to image ID
-  return getImageUrl(product.images[0].id);
+
+  return getImageUrl(image.id);
 };
+
+//export const getProductImageUrl = (product) => {
+//  if (!product || !product.images || product.images.length === 0) {
+//    return config.DEFAULT_PLACEHOLDER;
+//  }
+//  
+// // Use the downloadUrl from the product if available
+//  if (product.images[0].downloadUrl) {
+//    return `${config.API_BASE_URL}${product.images[0].downloadUrl}`;
+//  }
+//  
+//  // Fallback to image ID
+//  return getImageUrl(product.images[0].id);
+//};
 
 export const isProduction = () => config.ENVIRONMENT === 'production';
 export const isDevelopment = () => config.ENVIRONMENT === 'development';

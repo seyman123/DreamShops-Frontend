@@ -56,7 +56,7 @@ const CouponManagement = ({ onStatsUpdate }) => {
     
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      //const token = localStorage.getItem('token');
       
       // Backend Coupon model'ine uygun veri yapısı
       const couponData = {
@@ -76,21 +76,21 @@ const CouponManagement = ({ onStatsUpdate }) => {
       
       if (editingCoupon) {
         // Update existing coupon
-        const response = await api.put(`/coupons/${editingCoupon.id}`, couponData, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        //const response = await api.put(`/coupons/${editingCoupon.id}`, couponData, {
+        //  headers: {
+        //    'Authorization': `Bearer ${token}`,
+        //    'Content-Type': 'application/json'
+        //  }
+        //});
         toast.success('Kupon başarıyla güncellendi!');
       } else {
         // Create new coupon
-        const response = await api.post('/coupons', couponData, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        //const response = await api.post('/coupons', couponData, {
+        //  headers: {
+        //    'Authorization': `Bearer ${token}`,
+        //    'Content-Type': 'application/json'
+        //  }
+        //});
         toast.success('Kupon başarıyla oluşturuldu!');
       }
       

@@ -28,7 +28,6 @@ const ProductDetail = () => {
       setError(null);
       
       const response = await productsAPI.getProductById(id);
-      console.log('Product API response:', response);
       
       if (response.data && response.data.data) {
         setProduct(response.data.data);
@@ -201,7 +200,10 @@ const ProductDetail = () => {
             <div className="glass rounded-2xl border border-white border-opacity-20 p-6 hover:shadow-xl hover:shadow-primary-500/20 transition-all duration-300">
               <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-300 rounded-xl flex items-center justify-center overflow-hidden">
                 <img
-                                        src={getProductImageUrl(product)}
+                  src={product.images && product.images.length > 0 
+                    ? getProductImageUrl({ images: [product.images[selectedImage]] })
+                    : getProductImageUrl(product)
+                  }
                   alt={product.name}
                   className="w-full h-full object-cover rounded-lg"
                   onError={(e) => {
@@ -225,7 +227,7 @@ const ProductDetail = () => {
                     }`}
                   >
                     <img
-                                              src={`${config.API_BASE_URL}/images/image/${image.id}`}
+                      src={getProductImageUrl({ images: [image] })}
                       alt={`${product.name} ${index + 1}`}
                       className={`w-20 h-20 object-cover rounded-lg cursor-pointer border-2 ${
                         selectedImage === index ? 'border-blue-500' : 'border-gray-200'
