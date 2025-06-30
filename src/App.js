@@ -18,7 +18,12 @@ const Profile = lazy(() => import('./pages/Profile'));
 const Orders = lazy(() => import('./pages/Orders'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 const AdminSales = lazy(() => import('./pages/AdminSales'));
-const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard'));
+const AdminDashboard = lazy(() => 
+  import('./components/admin/AdminDashboard').catch(err => {
+    console.error('Failed to load AdminDashboard:', err);
+    return { default: () => <div>Admin Dashboard yüklenemedi</div> };
+  })
+);
 const About = lazy(() => import('./pages/About'));
 const Blog = lazy(() => import('./pages/Blog'));
 const Sale = lazy(() => import('./pages/Sale'));

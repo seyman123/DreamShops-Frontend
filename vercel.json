@@ -15,5 +15,15 @@
         }
       ]
     }
+  ],
+  "routes": [
+    {
+      "src": "/static/js/(.*)",
+      "dest": "/static/js/$1"
+    },
+    {
+      "src": "/static/css/(.*)",
+      "dest": "/static/css/$1"
+    }
   ]
 } 
