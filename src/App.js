@@ -1,31 +1,29 @@
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import NavbarComponent from './components/Navbar';
 import AdminDashboard from './components/admin/AdminDashboard';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Products from './pages/Products';
+import ProductDetail from './pages/ProductDetail';
+import Cart from './pages/Cart';
+import Profile from './pages/Profile';
+import Orders from './pages/Orders';
+import AdminPanel from './pages/AdminPanel';
+import AdminSales from './pages/AdminSales';
+import About from './pages/About';
+import Blog from './pages/Blog';
+import Sale from './pages/Sale';
+import Contact from './pages/Contact';
+import Favorites from './pages/Favorites';
 import 'react-toastify/dist/ReactToastify.css';
 import ErrorBoundary from './components/ErrorBoundary';
 
-// Lazy load pages for better performance
-const Home = lazy(() => import('./pages/Home'));
-const Login = lazy(() => import('./pages/Login'));
-const Register = lazy(() => import('./pages/Register'));
-const Products = lazy(() => import('./pages/Products'));
-const ProductDetail = lazy(() => import('./pages/ProductDetail'));
-const Cart = lazy(() => import('./pages/Cart'));
-const Profile = lazy(() => import('./pages/Profile'));
-const Orders = lazy(() => import('./pages/Orders'));
-const AdminPanel = lazy(() => import('./pages/AdminPanel'));
-const AdminSales = lazy(() => import('./pages/AdminSales'));
-const About = lazy(() => import('./pages/About'));
-const Blog = lazy(() => import('./pages/Blog'));
-const Sale = lazy(() => import('./pages/Sale'));
-const Contact = lazy(() => import('./pages/Contact'));
-const Favorites = lazy(() => import('./pages/Favorites'));
-
-// Loading component
+// Loading component (artık kullanılmayacak ama bırakıyoruz)
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="text-center">
@@ -44,26 +42,24 @@ function App() {
             <div className="min-h-screen flex flex-col dark:bg-gradient-dark light:bg-gradient-light bg-gradient-light transition-colors duration-300">
               <NavbarComponent />
               <main className="flex-1 pt-0 animate-fade-in">
-                <Suspense fallback={<LoadingSpinner />}>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/products" element={<Products />} />
-                    <Route path="/products/:id" element={<ProductDetail />} />
-                    <Route path="/cart" element={<Cart />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/orders" element={<Orders />} />
-                    <Route path="/admin" element={<AdminPanel />} />
-                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                    <Route path="/admin/sales" element={<AdminSales />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/blog" element={<Blog />} />
-                    <Route path="/sale" element={<Sale />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/favorites" element={<Favorites />} />
-                  </Routes>
-                </Suspense>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/products/:id" element={<ProductDetail />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/orders" element={<Orders />} />
+                  <Route path="/admin" element={<AdminPanel />} />
+                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                  <Route path="/admin/sales" element={<AdminSales />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/sale" element={<Sale />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/favorites" element={<Favorites />} />
+                </Routes>
               </main>
               <ToastContainer
                 position="top-right"
